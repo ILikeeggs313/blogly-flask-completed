@@ -1,7 +1,8 @@
 """Blogly application."""
 
+from crypt import methods
 from flask import Flask, render_template, request, session, redirect, flash
-from models import Post, db, connect_db, User, Post
+from models import Post, db, connect_db, User, Post, PostTag, Tag
 from flask_debugtoolbar import DebugToolbarExtension
 
 app = Flask(__name__)
@@ -128,3 +129,70 @@ def delete_post(post_id):
     db.session.commit()
     flash (f"Post '{post.title}' deleted. ")
 
+#part 3, adding M2M relationship, will be to add a "Tagging" feature
+
+@app.route('/tags')
+def tags_home():
+    """main page to get tag"""
+    tags = Tag.query.all()
+    return render_template('tags/home.html', tags = tags)
+
+@app.route('/tags/<int:tag_id>')
+def tags_info(tag_id):
+    """Information about specific tag, have links to edit form and to delete"""
+    tag_info = Tag.query.get_or_404(tag_id)
+    #return 404 if no tag id is found
+    return render_template('tags/info.html', tag_info = tag_info)
+
+@app.route('/tags/new')
+def get_new_tags():
+    """Show a form to add a new tag"""
+    posts = Post.query.all()
+    return render_template('/tags/new.html', posts = posts)
+
+@app.route('/tags/new', methods = ['POST'])
+def post_new_tag():
+    """Process the get_new_tag form, add and redirect to the tag list"""
+    post_id = [int(num) for num in request.form.getlist('posts')]
+    posts = Post.query.filter(Post.id.in_(post_id)).all()
+    new_tag = Tag(name = request.form['name'], posts = posts)
+    
+    with app.app_context():
+        db.session.add(new_tag)
+        db.session.commit()
+    
+    #redirect to the tag list
+    return redirect('/tags')
+
+@app.route('/tags/<int:tag_id>/edit', methods =['GET'])
+def get_edit(tag_id):
+    """Show edit form for a tag"""
+    tag = Tag.query.get_or_404(tag_id)
+    posts = Post.query.all()
+    return render_template('tags/edit.html', tag = tag, posts = posts)
+
+@app.route('/tags/<int:tag_id>/edit', methods = ['POST'])
+def post_edit(tag_id):
+    """process the edit form, edit tag, and redirects to the tags list"""
+    tag = Tag.query.get_or_404(tag_id)
+    tag.name = request.form['name']
+    post_ids = [int(num) for num in request.form.getlist('posts')]
+    tag.posts = Post.query.filter(Post.id.in_(post_ids)).all()
+
+    with app.app_context():
+        db.session.add(tag)
+        db.session.commit()
+
+    return redirect('/tags')
+
+#add a button to delete a tag, using POST method
+@app.route('/tags/<int:tag_id>/delete', methods = ['POST'])
+def post_delete(tag_id):
+    """Button to delete a tag"""
+    tag = Tag.query.get_or_404(tag_id)
+    
+    with app.app_context():
+        db.session.delete(tag)
+        db.session.commit()
+
+    return redirect('/tags')

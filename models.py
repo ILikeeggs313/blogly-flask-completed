@@ -49,7 +49,31 @@ class Post(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'),
     nullable = False)
 
+
+#part 3, creating a posttag model
+class PostTag(db.Model):
+    """joins together a post and a tag, have foreign key post_id and tag_id"""
+    """want post and tag to be unique and not null"""
+    __tablename__ = 'poststag'
+    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'),
+    primary_key = True)
+    tag_id = db.Column(db.Integer, db.ForeignKey('tags.id'),
+    primary_key = True)
+    #Recall we can actually put 2 of these as primary keys in M2M
+
+#now we need a TAG model
+class Tag(db.Model):
+    """Tags for posts"""
+    __tablename__ = 'tags'
+    tag_id = db.Column(db.Integer, primary_key = True)
+    tag_name = db.Column(db.Integer, primary_key = True)
+
+    posts = db.relationship('Post', secondary = 'poststag',
+    backref = 'tags')
+
+
 def connect_db(app):
 
     db.app = app 
     db.init_app(app)
+
