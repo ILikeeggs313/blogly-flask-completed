@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Make a new tag</title>
+</head>
+<body>
+    <h1> MAKE YOUR NEW TAG</h1>
+    <form method = 'POST' action = '/tags/new'>
+        <div>
+            <label for ='name' class = 'align-items-center'> Tag name</label>
+            <input type = 'text' id = 'name' name = 'name'
+            placeholder="enter a tag name">
+        </div>
+
+        <div>
+            {% for post in posts %}
+            <input type = 'checkbox' value = '{{post.id}}'
+            id = 'post_{{post.id}}' name = 'posts'>
+            <label for = "post_{{post.id}}">{{post.title}</label>
+            {% endfor %}
+        </div>
+        <div>
+            <!-- add a button to submit a new tag or to cancel -->
+            <a href = '/tags'> Cancel</a>
+            <button type = 'submit'> Edit</button>
+        </div>
+    </form>
+</body>
+</html>
